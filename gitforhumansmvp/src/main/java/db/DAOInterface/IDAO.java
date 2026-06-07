@@ -3,6 +3,7 @@ package db.DAOInterface;
 import java.sql.SQLException;
 import java.util.List;
 
+// SIMPLE CRUD INTERFACE
 public interface IDAO<T, K> 
 {
     // C - Create
