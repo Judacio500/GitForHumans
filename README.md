@@ -13,8 +13,8 @@ Git for Humans is a prototype for a Git-based cloud storage system (AKA a glorif
 ###  MILESTONE ROADMAP (AKA TODO LIST)
 
 ####  DATABASE
-* [ ] Create PostgreSQL Schema
-* [ ] Implement the 5 Core Tables (`usuarios`, `repositorios`, `colaboradores`, `archivos_metadata`, `human_diffs`)
+* [X] Create PostgreSQL Schema
+* [X] Implement the 5 Core Tables (`usuarios`, `repositorios`, `colaboradores`, `archivos_metadata`, `human_diffs`)
 
 ####  WEB-APP ARCHITECTURE (MVC)
 *> Both POJOs and JSPs are included here, but the specific requirements of "View and User Experience" and "Git Logic" must be fulfilled to complete this section.*
