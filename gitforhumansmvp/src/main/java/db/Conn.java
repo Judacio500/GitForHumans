@@ -41,7 +41,8 @@ public class Conn
     {
         try 
         {
-            if (rs != null) rs.close();
+            if (rs != null) 
+                rs.close();
         } 
         catch(SQLException ex) 
         {
@@ -53,7 +54,8 @@ public class Conn
     {
         try 
         {
-            if (ps != null) ps.close();
+            if (ps != null) 
+                ps.close();
         } 
         catch(SQLException ex) 
         {
@@ -65,7 +67,8 @@ public class Conn
     {
         try 
         {
-            if (conn != null) conn.close();
+            if (conn != null) 
+                conn.close();
         } 
         catch(SQLException ex) 
         {
