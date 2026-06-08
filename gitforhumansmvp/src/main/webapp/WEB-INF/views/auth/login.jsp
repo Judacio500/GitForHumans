@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Code Vault</title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/global.css">
 </head>
 <body>
 
@@ -13,16 +14,22 @@
             <h2>Welcome Back</h2>
             <p>Sign in to access your repositories</p>
 
+            <% if (request.getAttribute("errorMessage") != null) { %>
+                <div class="error-alert">
+                    <%= request.getAttribute("errorMessage") %>
+                </div>
+            <% } %>
+
             <form action="${pageContext.request.contextPath}/login" method="POST">
                 
                 <div class="form-group">
                     <label for="email">Email Address</label>
-                    <input type="email" id="email" name="email" required autocomplete="email">
+                    <input type="email" id="email" name="email" required autocomplete="email" placeholder="you@example.com">
                 </div>
 
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required>
+                    <input type="password" id="password" name="password" required placeholder="••••••••">
                 </div>
 
                 <button type="submit">Sign In</button>
