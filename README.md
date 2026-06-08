@@ -19,7 +19,7 @@ Git for Humans is a prototype for a Git-based cloud storage system (AKA a glorif
 ####  WEB-APP ARCHITECTURE (MVC)
 *> Both POJOs and JSPs are included here, but the specific requirements of "View and User Experience" and "Git Logic" must be fulfilled to complete this section.*
 * [ ] POJOs (Java Beans, Auxiliars and general Logic)
-* [ ] DAOs (Data Access Objects for PostgreSQL)
+* [X] DAOs (Data Access Objects for PostgreSQL)
 * [ ] Servlets (Controllers)
 * [ ] JSPs (Views)
 
@@ -51,6 +51,7 @@ The project follows a structured, milestone-driven development cycle optimized f
 * **Database Design:** Creation and execution of the relational schema in PostgreSQL (Implementation of the 5 core entities: Users, Repositories, Collaborators, Metadata, and Human Diffs).
 * **MVC Base Setup:** Initialization of the web application framework using Maven, configuring the embedded Tomcat container, dependencies, and project folder hierarchy.
 * **Data Persistence Layer:** Coding the JavaBeans (Models) and Data Access Objects (DAOs) to lay down the bare-bones database communication.
+* **Real Timeline:** 07/06/26 18:10
 
 ### SPRINT 2 — View Mapping & Fully Functional CRUD
 **Timeline:** 07/06/26
