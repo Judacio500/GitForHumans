@@ -8,12 +8,12 @@ import db.DAOInterface.IRepositoryDAO;
 
 public class RepositoryDAO implements IRepositoryDAO
 {
-    private static final String SQL_INSERT = "INSERT INTO repositorios(nombre, descripcion, id_creador) VALUES (?, ?, ?)";
-    private static final String SQL_SELECT_BY_ID = "SELECT id, nombre, descripcion, id_creador, fecha_creacion FROM repositorios WHERE id = ?";
-    private static final String SQL_SELECT_ALL = "SELECT id, nombre, descripcion, id_creador, fecha_creacion FROM repositorios";
+    private static final String SQL_INSERT = "INSERT INTO repositorios(nombre, descripcion, ruta_local_git, id_creador) VALUES (?, ?, ?, ?)";
+    private static final String SQL_SELECT_BY_ID = "SELECT id, nombre, descripcion, ruta_local_git, id_creador, fecha_creacion FROM repositorios WHERE id = ?";
+    private static final String SQL_SELECT_ALL = "SELECT id, nombre, descripcion, ruta_local_git, id_creador, fecha_creacion FROM repositorios";
+    private static final String SQL_SELECT_BY_CREATOR = "SELECT id, nombre, descripcion, ruta_local_git, id_creador, fecha_creacion FROM repositorios WHERE id_creador = ?";
     private static final String SQL_UPDATE = "UPDATE repositorios SET nombre = ?, descripcion = ?, id_creador = ? WHERE id = ?";
     private static final String SQL_DELETE = "DELETE FROM repositorios WHERE id = ?";
-    private static final String SQL_SELECT_BY_CREATOR = "SELECT id, nombre, descripcion, id_creador, fecha_creacion FROM repositorios WHERE id_creador = ?";
 
     @Override
     public boolean insert(RepositoryBean obj) throws SQLException 
@@ -23,7 +23,8 @@ public class RepositoryDAO implements IRepositoryDAO
         {
             ps.setString(1, obj.getName());
             ps.setString(2, obj.getDescription());
-            ps.setObject(3, obj.getIdCreator());
+            ps.setString(3, obj.getGit_path());
+            ps.setObject(4, obj.getIdCreator());
 
             int rowsAffected = ps.executeUpdate();
             return rowsAffected > 0;
@@ -47,10 +48,11 @@ public class RepositoryDAO implements IRepositoryDAO
                     UUID repoId = rs.getObject("id", UUID.class);
                     String name = rs.getString("nombre");
                     String description = rs.getString("descripcion");
+                    String git_path = rs.getString("ruta_local_git");
                     UUID idCreator = rs.getObject("id_creador", UUID.class);
                     OffsetDateTime creationDate = rs.getObject("fecha_creacion", OffsetDateTime.class);
 
-                    repo = new RepositoryBean(repoId, name, description, idCreator, creationDate);
+                    repo = new RepositoryBean(repoId, name, description, idCreator, creationDate, git_path);
                 }
             }
         }
@@ -72,10 +74,12 @@ public class RepositoryDAO implements IRepositoryDAO
                 UUID repoId = rs.getObject("id", UUID.class);
                 String name = rs.getString("nombre");
                 String description = rs.getString("descripcion");
+                String git_path = rs.getString("ruta_local_git");
                 UUID idCreator = rs.getObject("id_creador", UUID.class);
                 OffsetDateTime creationDate = rs.getObject("fecha_creacion", OffsetDateTime.class);
 
-                repos.add(new RepositoryBean(repoId, name, description, idCreator, creationDate));
+                RepositoryBean repo = new RepositoryBean(repoId, name, description, idCreator, creationDate, git_path);
+                repos.add(repo);
             }
         }
         
@@ -128,10 +132,12 @@ public class RepositoryDAO implements IRepositoryDAO
                     UUID repoId = rs.getObject("id", UUID.class);
                     String name = rs.getString("nombre");
                     String description = rs.getString("descripcion");
+                    String git_path = rs.getString("ruta_local_git");
                     UUID retrievedCreatorId = rs.getObject("id_creador", UUID.class);
                     OffsetDateTime creationDate = rs.getObject("fecha_creacion", OffsetDateTime.class);
 
-                    repos.add(new RepositoryBean(repoId, name, description, retrievedCreatorId, creationDate));
+                    RepositoryBean repo = new RepositoryBean(repoId, name, description, retrievedCreatorId, creationDate, git_path);
+                    repos.add(repo);
                 }
             }
         }

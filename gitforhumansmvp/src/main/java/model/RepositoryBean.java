@@ -11,6 +11,7 @@ public class RepositoryBean implements Serializable
     private UUID idRepository;
     private String name;
     private String description;
+    private String git_path;
     private UUID idCreator; 
     private OffsetDateTime creationDate;
 
@@ -31,13 +32,14 @@ public class RepositoryBean implements Serializable
         this.idCreator = idCreator;
     }
 
-    public RepositoryBean(UUID idRepository, String name, String description, UUID idCreator, OffsetDateTime creationDate) 
+    public RepositoryBean(UUID idRepository, String name, String description, UUID idCreator, OffsetDateTime creationDate, String git_path) 
     {
         this.idRepository = idRepository;
         this.name = name;
         this.description = description;
         this.idCreator = idCreator;
         this.creationDate = creationDate;
+        this.git_path = git_path;
     }
 
     public UUID getIdRepository()
@@ -89,4 +91,13 @@ public class RepositoryBean implements Serializable
     {
         this.creationDate = creationDate;
     }
+
+    public String getGit_path() {
+        return git_path;
+    }
+
+    public void setGit_path(String git_path) {
+        this.git_path = git_path;
+    }
+    
 }

@@ -10,6 +10,7 @@ public class LFDiffBean implements Serializable
 
     private UUID idDiff;
     private UUID idFile;
+    private UUID idUser;
     private String bulletDescription;
     private OffsetDateTime commitDate;
 
@@ -29,10 +30,11 @@ public class LFDiffBean implements Serializable
         this.bulletDescription = bulletDescription;
     }
 
-    public LFDiffBean(UUID idDiff, UUID idFile, String bulletDescription, OffsetDateTime commitDate)
+    public LFDiffBean(UUID idDiff, UUID idFile, UUID idUser, String bulletDescription, OffsetDateTime commitDate)
     {
         this.idDiff = idDiff;
         this.idFile = idFile;
+        this.idUser = idUser;
         this.bulletDescription = bulletDescription;
         this.commitDate = commitDate;
     }
@@ -75,5 +77,13 @@ public class LFDiffBean implements Serializable
     public void setCommitDate(OffsetDateTime commitDate)
     {
         this.commitDate = commitDate;
+    }
+
+    public UUID getIdUser() {
+        return idUser;
+    }
+
+    public void setIdUser(UUID idUser) {
+        this.idUser = idUser;
     }
 }

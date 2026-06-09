@@ -8,12 +8,12 @@ import db.DAOInterface.ILFDiffDAO;
 
 public class LFDiffDAO implements ILFDiffDAO
 {
-    private static final String SQL_INSERT = "INSERT INTO human_diffs(id_archivo, descripcion_vineta) VALUES (?, ?)";
-    private static final String SQL_SELECT_BY_ID = "SELECT id, id_archivo, descripcion_vineta, fecha_commit FROM human_diffs WHERE id = ?";
-    private static final String SQL_SELECT_ALL = "SELECT id, id_archivo, descripcion_vineta, fecha_commit FROM human_diffs";
+    private static final String SQL_INSERT = "INSERT INTO human_diffs(id_archivo, id_usuario, descripcion_vineta) VALUES (?, ?, ?)";
+    private static final String SQL_SELECT_BY_ID = "SELECT id, id_archivo, id_usuario, descripcion_vineta, fecha_commit FROM human_diffs WHERE id = ?";
+    private static final String SQL_SELECT_ALL = "SELECT id, id_archivo, id_usuario, descripcion_vineta, fecha_commit FROM human_diffs";
+    private static final String SQL_SELECT_BY_FILE = "SELECT id, id_archivo, id_usuario, descripcion_vineta, fecha_commit FROM human_diffs WHERE id_archivo = ?";
     private static final String SQL_UPDATE = "UPDATE human_diffs SET descripcion_vineta = ? WHERE id = ?";
     private static final String SQL_DELETE = "DELETE FROM human_diffs WHERE id = ?";
-    private static final String SQL_SELECT_BY_FILE = "SELECT id, id_archivo, descripcion_vineta, fecha_commit FROM human_diffs WHERE id_archivo = ?";
 
     @Override
     public boolean insert(LFDiffBean obj) throws SQLException 
@@ -22,7 +22,8 @@ public class LFDiffDAO implements ILFDiffDAO
             PreparedStatement ps = conn.prepareStatement(SQL_INSERT))
         {
             ps.setObject(1, obj.getIdFile());
-            ps.setString(2, obj.getBulletDescription());
+            ps.setObject(2, obj.getIdUser());
+            ps.setString(3, obj.getBulletDescription());
 
             int rowsAffected = ps.executeUpdate();
             return rowsAffected > 0;
@@ -47,8 +48,9 @@ public class LFDiffDAO implements ILFDiffDAO
                     UUID fileId = rs.getObject("id_archivo", UUID.class);
                     String description = rs.getString("descripcion_vineta");
                     OffsetDateTime commitDate = rs.getObject("fecha_commit", OffsetDateTime.class);
+                    UUID idUser = rs.getObject("id_usuario", UUID.class);
 
-                    diff = new LFDiffBean(diffId, fileId, description, commitDate);
+                    diff = new LFDiffBean(diffId, fileId, idUser, description, commitDate);
                 }
             }
         }
@@ -71,8 +73,10 @@ public class LFDiffDAO implements ILFDiffDAO
                 UUID fileId = rs.getObject("id_archivo", UUID.class);
                 String description = rs.getString("descripcion_vineta");
                 OffsetDateTime commitDate = rs.getObject("fecha_commit", OffsetDateTime.class);
+                UUID idUser = rs.getObject("id_usuario", UUID.class);
 
-                diffs.add(new LFDiffBean(diffId, fileId, description, commitDate));
+                LFDiffBean diff = new LFDiffBean(diffId, fileId, idUser, description, commitDate);
+                diffs.add(diff);
             }
         }
         
@@ -122,10 +126,12 @@ public class LFDiffDAO implements ILFDiffDAO
                 {
                     UUID diffId = rs.getObject("id", UUID.class);
                     UUID retrievedFileId = rs.getObject("id_archivo", UUID.class);
+                    UUID idUser = rs.getObject("id_usuario", UUID.class);
                     String description = rs.getString("descripcion_vineta");
                     OffsetDateTime commitDate = rs.getObject("fecha_commit", OffsetDateTime.class);
 
-                    diffs.add(new LFDiffBean(diffId, retrievedFileId, description, commitDate));
+                    LFDiffBean diff = new LFDiffBean(diffId, retrievedFileId, idUser, description, commitDate);
+                    diffs.add(diff);
                 }
             }
         }

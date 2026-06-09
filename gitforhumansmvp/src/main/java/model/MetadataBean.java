@@ -10,13 +10,12 @@ public class MetadataBean implements Serializable
 
     private UUID idFile;
     private UUID idRepository;
+    private UUID idUserUpload;
     private String fileName;
-    private String azureUrl;
+    private String filePath;
     private String changeType;
-    // DECISIÓN: Usamos el tipo primitivo 'int' en lugar de la clase envoltorio 'Integer'.
-    // Esto es porque en tu script SQL definiste "DEFAULT 1" y "NOT NULL". 
-    // Al usar 'int', evitamos que esta variable pueda ser NULL en la RAM, empatando con la BD.
     private int codeVersion; 
+    private long byteSize;
     private OffsetDateTime uploadDate;
 
     public MetadataBean()
@@ -29,24 +28,26 @@ public class MetadataBean implements Serializable
         this.idFile = idFile;
     }
 
-    public MetadataBean(UUID idRepository, String fileName, String azureUrl, String changeType, int codeVersion)
+    public MetadataBean(UUID idRepository, String fileName, String filePath, String changeType, int codeVersion)
     {
         this.idRepository = idRepository;
         this.fileName = fileName;
-        this.azureUrl = azureUrl;
+        this.filePath = filePath;
         this.changeType = changeType;
         this.codeVersion = codeVersion;
     }
 
-    public MetadataBean(UUID idFile, UUID idRepository, String fileName, String azureUrl, String changeType, int codeVersion, OffsetDateTime uploadDate)
+    public MetadataBean(UUID idFile, UUID idRepository, String fileName, String filePath, String changeType, int codeVersion, OffsetDateTime uploadDate, UUID idUserUpload, long byteSize)
     {
         this.idFile = idFile;
         this.idRepository = idRepository;
         this.fileName = fileName;
-        this.azureUrl = azureUrl;
+        this.filePath = filePath;
         this.changeType = changeType;
         this.codeVersion = codeVersion;
         this.uploadDate = uploadDate;
+        this.idUserUpload = idUserUpload;
+        this.byteSize = byteSize;
     }
 
     public UUID getIdFile()
@@ -79,14 +80,14 @@ public class MetadataBean implements Serializable
         this.fileName = fileName;
     }
 
-    public String getAzureUrl()
+    public String getfilePath()
     {
-        return azureUrl;
+        return filePath;
     }
 
-    public void setAzureUrl(String azureUrl)
+    public void setfilePath(String filePath)
     {
-        this.azureUrl = azureUrl;
+        this.filePath = filePath;
     }
 
     public String getChangeType()
@@ -117,5 +118,29 @@ public class MetadataBean implements Serializable
     public void setUploadDate(OffsetDateTime uploadDate)
     {
         this.uploadDate = uploadDate;
+    }
+
+    public UUID getIdUserUpload() {
+        return idUserUpload;
+    }
+
+    public void setIdUserUpload(UUID idUserUpload) {
+        this.idUserUpload = idUserUpload;
+    }
+
+    public String getFilePath() {
+        return filePath;
+    }
+
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
+    }
+
+    public long getByteSize() {
+        return byteSize;
+    }
+
+    public void setByteSize(long byteSize) {
+        this.byteSize = byteSize;
     }
 }

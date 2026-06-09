@@ -9,9 +9,9 @@ import db.DAOInterface.IUserDAO;
 public class UserDAO implements IUserDAO
 {
     private static final String SQL_INSERT = "INSERT INTO Usuarios(nombre, email, password_hash) VALUES (?, ?, ?)";
-    private static final String SQL_SELECT_BY_ID = "SELECT id, nombre, email, password_hash, fecha_registro FROM usuarios WHERE id = ?";
-    private static final String SQL_SELECT_BY_EMAIL = "SELECT id, nombre, email, password_hash, fecha_registro FROM usuarios WHERE email = ?";
-    private static final String SQL_SELECT_ALL = "SELECT id, nombre, email, password_hash, fecha_registro FROM usuarios";
+    private static final String SQL_SELECT_BY_ID = "SELECT id, nombre, email, password_hash, avatar_url, is_active, fecha_registro FROM usuarios WHERE id = ?";
+    private static final String SQL_SELECT_BY_EMAIL = "SELECT id, nombre, email, password_hash, avatar_url, is_active, fecha_registro FROM usuarios WHERE email = ?";
+    private static final String SQL_SELECT_ALL = "SELECT id, nombre, email, password_hash, avatar_url, is_active, fecha_registro FROM usuarios";
     private static final String SQL_UPDATE = "UPDATE usuarios SET nombre = ?, email = ?, password_hash = ? WHERE id = ?";
     private static final String SQL_DELETE = "DELETE FROM usuarios WHERE id = ?";
 
@@ -55,9 +55,11 @@ public class UserDAO implements IUserDAO
                     String name = rs.getString("nombre");
                     String email = rs.getString("email");
                     String password = rs.getString("password_hash");
+                    String avatarUrl = rs.getNString("avatar_url");
+                    Boolean is_active = rs.getBoolean("is_active");
                     OffsetDateTime registerDate = rs.getObject("fecha_registro", OffsetDateTime.class);
 
-                    user = new UserBean(userId, name, email, password, registerDate);
+                    user = new UserBean(userId, name, email, password, registerDate, avatarUrl, is_active);
                 }
             }
         }
@@ -79,9 +81,11 @@ public class UserDAO implements IUserDAO
                 String name = rs.getString("nombre");
                 String email = rs.getString("email");
                 String password = rs.getString("password_hash");
+                String avatarUrl = rs.getNString("avatar_url");
+                Boolean is_active = rs.getBoolean("is_active");
                 OffsetDateTime registerDate = rs.getObject("fecha_registro", OffsetDateTime.class);
 
-                UserBean user = new UserBean(id, name, email, password, registerDate);
+                UserBean user = new UserBean(id, name, email, password, registerDate, avatarUrl, is_active);
                 users.add(user);
             }
         }
@@ -138,9 +142,11 @@ public class UserDAO implements IUserDAO
                     String name = rs.getString("nombre");
                     String userEmail = rs.getString("email");
                     String password = rs.getString("password_hash");
+                    String avatarUrl = rs.getNString("avatar_url");
+                    Boolean is_active = rs.getBoolean("is_active");
                     OffsetDateTime registerDate = rs.getObject("fecha_registro", OffsetDateTime.class);
 
-                    user = new UserBean(userId, name, userEmail, password, registerDate);
+                    user = new UserBean(userId, name, userEmail, password, registerDate, avatarUrl, is_active);
                 }
             }
         }
