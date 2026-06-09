@@ -19,7 +19,7 @@
                 📦 Code Vault
             </div>
             
-            <button type="button" class="btn-primary">+ New Repository</button>
+            <button type="button" class="btn-primary" onclick="openModal()">+ New Repository</button>
 
             <nav class="sidebar-nav">
                 <a href="${pageContext.request.contextPath}/dashboard" class="nav-item active">My Vault</a>
@@ -86,6 +86,41 @@
             </div>
         </main>
     </div>
+
+    <div id="modalNewRepo" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Repository</h3>
+                <button type="button" class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            
+            <form action="${pageContext.request.contextPath}/NewRepository" method="POST">
+                <div class="form-group">
+                    <label for="repositoryName">Repository Name</label>
+                    <input type="text" id="repositoryName" name="repositoryName" required pattern="[a-zA-Z0-9_-]+" title="Only letters, numbers, dashes and underscores">
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">Description (Optional)</label>
+                    <textarea id="description" name="description" rows="3"></textarea>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Create Repository</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openModal() {
+            document.getElementById('modalNewRepo').style.display = 'flex';
+        }
+        function closeModal() {
+            document.getElementById('modalNewRepo').style.display = 'none';
+        }
+    </script>
 
 </body>
 </html>
