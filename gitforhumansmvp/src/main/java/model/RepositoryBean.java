@@ -25,11 +25,12 @@ public class RepositoryBean implements Serializable
         this.idRepository = idRepository;
     }
 
-    public RepositoryBean(String name, String description, UUID idCreator)
+    public RepositoryBean(String name, String description, UUID idCreator, String git_path)
     {
         this.name = name;
         this.description = description;
         this.idCreator = idCreator;
+        this.git_path = git_path;
     }
 
     public RepositoryBean(UUID idRepository, String name, String description, UUID idCreator, OffsetDateTime creationDate, String git_path) 
