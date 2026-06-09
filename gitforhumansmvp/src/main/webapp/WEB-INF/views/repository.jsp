@@ -9,6 +9,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${repository.name} - Code Vault</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/global.css">
+    <style>
+        .file-link {
+            text-decoration: none;
+            color: inherit;
+        }
+        .file-link:hover {
+            color: #0284C7;
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body style="align-items: flex-start;">
 
@@ -51,7 +61,7 @@
                         </div>
                     </div>
                     
-                    <button class="btn-primary" style="width: auto;" onclick="openUploadModal()">+ Upload Asset</button>
+                <button class="btn-primary" style="width: auto;" onclick="openUploadModal()">+ Upload Asset</button>
                 </div>
 
                 <div class="lens-switcher">
@@ -60,32 +70,63 @@
                 </div>
 
                 <div class="repo-container">
-                    
                     <div class="view-lens active">
-                        <c:choose>
-                            <c:when test="${fn:length(repoMetaData) > 0}">
-                                <div class="asset-grid">
-                                    <c:forEach items="${repoMetaData}" var="file">
-                                        <div class="asset-card">
-                                            <div class="asset-icon" style="background-color: #E0F2FE; color: #0284C7;">FILE</div>
-                                            <div class="asset-meta">
-                                                <h4>${file.fileName}</h4>
-                                                <p>${file.byteSize} Bytes • ${file.uploadDate}</p>
-                                                <span class="version-badge">v1.0</span>
-                                            </div>
-                                            <div class="action-menu">⋮</div>
+                        
+                        <%-- SECCION PARA CODIGO FUENTE (GIT) --%>
+                        <c:if test="${fn:length(gitFiles) > 0}">
+                            <h3 style="color: var(--text-primary); margin-bottom: 15px; border-bottom: 1px solid #30363d; padding-bottom: 5px;">Source Code</h3>
+                            <div class="asset-grid" style="margin-bottom: 30px;">
+                                <c:forEach items="${gitFiles}" var="fileName">
+                                    <div class="asset-card">
+                                        <div class="asset-icon" style="background-color: #f0fdf4; color: #16a34a;">CODE</div>
+                                        <div class="asset-meta">
+                                            <h4>
+                                                <a href="${pageContext.request.contextPath}/Viewer?repositoryId=${repository.idRepository}&file=${fileName}" class="file-link">
+                                                    ${fileName}
+                                                </a>
+                                            </h4>
+                                            <span class="version-badge" style="background-color: #dcfce7; color: #166534;">Git Tracked</span>
                                         </div>
-                                    </c:forEach>
-                                </div>
-                            </c:when>
-                            <c:otherwise>
-                                <div style="text-align: center; padding: 50px; background-color: var(--surface); border-radius: var(--radius-card); border: 2px dashed #E1E4E8;">
-                                    <h3 style="color: var(--text-secondary); margin-bottom: 10px;">No assets uploaded yet</h3>
-                                    <p style="color: #9CA3AF; font-size: 14px;">Click "+ Upload Asset" to add binary files to this vault.</p>
-                                </div>
-                            </c:otherwise>
-                        </c:choose>
+                                    </div>
+                                </c:forEach>
+                            </div>
+                        </c:if>
+
+                        <%-- SECCION PARA BINARIOS (LFS) --%>
+                        <c:if test="${fn:length(repoMetaData) > 0}">
+                            <h3 style="color: var(--text-primary); margin-bottom: 15px; border-bottom: 1px solid #30363d; padding-bottom: 5px;">LFS Binaries</h3>
+                            <div class="asset-grid">
+                                <c:forEach items="${repoMetaData}" var="file">
+                                    <div class="asset-card">
+                                        <div class="asset-icon" style="background-color: #E0F2FE; color: #0284C7;">LFS</div>
+                                        <div class="asset-meta">
+                                            <h4>
+                                                ${file.fileName}
+                                            </h4>
+                                            <p>${file.byteSize} Bytes • ${file.uploadDate}</p>
+                                            <span class="version-badge">v1.0</span>
+                                        </div>
+                                        <div class="action-menu">⋮</div>
+                                    </div>
+                                </c:forEach>
+                            </div>
+                        </c:if>
+
+                        <%-- MENSAJE SI ESTA VACIO --%>
+                        <c:if test="${fn:length(gitFiles) == 0 && fn:length(repoMetaData) == 0}">
+                            <div style="text-align: center; padding: 50px; background-color: var(--surface); border-radius: var(--radius-card); border: 2px dashed #E1E4E8;">
+                                <h3 style="color: var(--text-secondary); margin-bottom: 10px;">No assets uploaded yet</h3>
+                                <p style="color: #9CA3AF; font-size: 14px;">Click "+ Upload Asset" to add code or binaries to this vault.</p>
+                            </div>
+                        </c:if>
+                        
                     </div>
+
+                    <a href="${pageContext.request.contextPath}/DownloadVault?repositoryId=${repository.idRepository}" 
+                    class="btn-primary" 
+                    style="background-color: #2ea44f; margin-left: 10px; text-decoration: none;">
+                    <i class="fas fa-download"></i> Clone / Download ZIP
+                    </a>
 
                     <aside class="activity-sidebar">
                         <div class="sidebar-section-title">Details</div>
@@ -141,16 +182,20 @@
             </div>
             
             <form action="${pageContext.request.contextPath}/UploadAsset" method="POST" enctype="multipart/form-data">
-                
                 <input type="hidden" name="repositoryId" value="${repository.idRepository}">
                 
                 <div class="form-group">
                     <label for="fileUpload">Select File</label>
                     <input type="file" id="fileUpload" name="fileUpload" required style="padding: 8px;">
                 </div>
+
+                <div class="form-group" style="margin-top: 15px;">
+                    <label for="bulletPoints">Change Description</label>
+                    <textarea id="bulletPoints" name="bulletPoints" rows="3" placeholder="- Se corrigió la geometría&#10;- Nueva versión estable"></textarea>
+                </div>
                 
-                <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 15px;">
-                    * Source code (.c, .h) will be tracked by Git. Binaries (.stl, .pdf) go to the LFS Vault.
+                <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 15px; margin-top: 10px;">
+                    * Source code (.c, .h) goes to Git. Binaries (.stl, .pdf) go to LFS Vault.
                 </p>
                 
                 <div class="modal-actions">

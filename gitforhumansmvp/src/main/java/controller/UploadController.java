@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
@@ -64,6 +65,7 @@ public class UploadController extends HttpServlet
         UserBean loggedUser = (UserBean) session.getAttribute("loggedUser");
         String repoIdStr = request.getParameter("repositoryId");
         Part filePart = request.getPart("fileUpload");
+        String bulletPoints = request.getParameter("bulletPoints");
 
         String fileName = (filePart != null) ? extractFileName(filePart) : "";
 
@@ -75,8 +77,6 @@ public class UploadController extends HttpServlet
 
         UUID repoId = UUID.fromString(repoIdStr);
         long fileSize = filePart.getSize();
-        
-        // (De aquí en adelante sigue igual: sacar la extensión, leer properties, etc.)
 
         String extension = "";
         int i = fileName.lastIndexOf('.');
@@ -111,6 +111,7 @@ public class UploadController extends HttpServlet
                 targetFilePath = rootPath.resolve("lfs_vault").resolve(fileName);
             }
 
+            // 2. Escritura Física Incondicional
             try (InputStream fileContent = filePart.getInputStream()) 
             {
                 Files.copy(fileContent, targetFilePath, StandardCopyOption.REPLACE_EXISTING);
@@ -118,7 +119,7 @@ public class UploadController extends HttpServlet
             catch (IOException e)
             {
                 e.printStackTrace();
-                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error escribiendo el archivo en el disco");
+                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error escribiendo el archivo");
                 return;
             }
 
@@ -127,39 +128,68 @@ public class UploadController extends HttpServlet
                 try
                 {
                     String gitFolderPath = rootPath.resolve("source_code").toString();
-                    String commitMsg = "Auto-commit: Added/Updated " + fileName;
-                    String dummyEmail = loggedUser.getName().replaceAll("\\s+", "").toLowerCase() + "@codevault.local";
+                    String commitMsg = "Auto-commit: " + fileName;
                     
+                    if (bulletPoints != null && !bulletPoints.trim().isEmpty()) 
+                    {
+                        commitMsg += " | " + bulletPoints.replace("\n", " ");
+                    }
+                    
+                    String dummyEmail = loggedUser.getName().replaceAll("\\s+", "").toLowerCase() + "@codevault.local";
                     GitService.autoCommit(gitFolderPath, commitMsg, loggedUser.getName(), dummyEmail);
                 }
                 catch(Exception e)
                 {
                     e.printStackTrace();
-                    Files.deleteIfExists(targetFilePath);
                     response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error: Git tracking failed");
                     return;
                 }
             }
             else
             {
-                MetadataBean metadata = new MetadataBean();
-                metadata.setIdRepository(repoId);
-                metadata.setFileName(fileName);
-                metadata.setByteSize(fileSize);
-                metadata.setFilePath(targetFilePath.toString());
-                metadata.setIdUserUpload(loggedUser.getIdUser());
-                metadata.setChangeType("Upload");
-
-                try 
+                if (bulletPoints != null && !bulletPoints.trim().isEmpty())
                 {
-                    metadataDAO.insert(metadata);
+                    Path changelogPath = rootPath.resolve("lfs_vault").resolve(fileName + "_changelog.txt");
+                    String logEntry = "--- Cambio por " + loggedUser.getName() + " ---\n" + bulletPoints + "\n\n";
+                    Files.write(changelogPath, logEntry.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
                 }
-                catch (SQLException e) 
+
+                // Verificación de duplicados para la UI
+                List<MetadataBean> existingFiles = metadataDAO.selectByRepositoryId(repoId);
+                boolean isDuplicate = false;
+                
+                if (existingFiles != null) 
                 {
-                    e.printStackTrace();
-                    Files.deleteIfExists(targetFilePath);
-                    response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error: registering metadata in the DB");
-                    return;
+                    for (MetadataBean mb : existingFiles) 
+                    {
+                        if (mb.getFileName().equals(fileName)) 
+                        {
+                            isDuplicate = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!isDuplicate) 
+                {
+                    MetadataBean metadata = new MetadataBean();
+                    metadata.setIdRepository(repoId);
+                    metadata.setFileName(fileName);
+                    metadata.setByteSize(fileSize);
+                    metadata.setFilePath(targetFilePath.toString());
+                    metadata.setIdUserUpload(loggedUser.getIdUser());
+                    metadata.setChangeType("Upload");
+
+                    try 
+                    {
+                        metadataDAO.insert(metadata);
+                    }
+                    catch (SQLException e) 
+                    {
+                        e.printStackTrace();
+                        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error insertando metadata");
+                        return;
+                    }
                 }
             }
 
@@ -169,7 +199,7 @@ public class UploadController extends HttpServlet
         catch (SQLException e) 
         {
             e.printStackTrace();
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error: With the infrastructure query");
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error de infraestructura BD");
         }
     }
 
