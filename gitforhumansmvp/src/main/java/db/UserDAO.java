@@ -18,6 +18,18 @@ public class UserDAO implements IUserDAO
     @Override
     public boolean insert(UserBean obj) throws SQLException 
     {
+        try (Connection conn = Conn.getConnection();
+             PreparedStatement ps = conn.prepareStatement(SQL_SELECT_BY_EMAIL))
+        {
+            ps.setString(1, obj.getEmail());
+
+            try(ResultSet rs = ps.executeQuery())
+            {
+                if(rs.next())
+                return false;
+            }
+        }
+
         try(Connection conn = Conn.getConnection(); 
             PreparedStatement ps = conn.prepareStatement(SQL_INSERT))
         {
@@ -81,7 +93,7 @@ public class UserDAO implements IUserDAO
                 String name = rs.getString("nombre");
                 String email = rs.getString("email");
                 String password = rs.getString("password_hash");
-                String avatarUrl = rs.getNString("avatar_url");
+                String avatarUrl = rs.getString("avatar_url");
                 Boolean is_active = rs.getBoolean("is_active");
                 OffsetDateTime registerDate = rs.getObject("fecha_registro", OffsetDateTime.class);
 
@@ -142,7 +154,7 @@ public class UserDAO implements IUserDAO
                     String name = rs.getString("nombre");
                     String userEmail = rs.getString("email");
                     String password = rs.getString("password_hash");
-                    String avatarUrl = rs.getNString("avatar_url");
+                    String avatarUrl = rs.getString("avatar_url");
                     Boolean is_active = rs.getBoolean("is_active");
                     OffsetDateTime registerDate = rs.getObject("fecha_registro", OffsetDateTime.class);
 
