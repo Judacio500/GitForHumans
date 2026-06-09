@@ -1,5 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" isELIgnored="false" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,11 +10,13 @@
     <title>Dashboard - Code Vault</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/global.css">
 </head>
-<body style="align-items: flex-start;"> <div class="app-layout">
+<body style="align-items: flex-start;">
+
+    <div class="app-layout">
         
         <aside class="sidebar">
             <div class="brand">
-                Code Vault
+                📦 Code Vault
             </div>
             
             <button type="button" class="btn-primary">+ New Repository</button>
@@ -25,7 +29,7 @@
 
             <div class="user-profile">
                 <p>${not empty sessionScope.loggedUser.name ? sessionScope.loggedUser.name : 'Developer'}</p>
-                <a href="${pageContext.request.contextPath}/home" style="color: var(--danger-text); font-size: 12px; text-decoration: none; display: block; margin-top: 5px;">Sign Out</a>
+                <a href="${pageContext.request.contextPath}/logout" style="color: var(--danger-text); font-size: 12px; text-decoration: none; display: block; margin-top: 5px;">Sign Out</a>
             </div>
         </aside>
 
@@ -38,56 +42,49 @@
             <div class="content-scroll">
                 
                 <h2 class="section-title">Recent Repositories</h2>
-                <div class="repo-grid">
-                    
-                    <a href="${pageContext.request.contextPath}/repository" class="repo-card">
-                        <h3>Project_Sésamo</h3>
-                        <p>Automated vertical hydroponics system files and technical hardware specifications.</p>
-                    </a>
+                
+                <c:choose>
+                    <c:when test="${fn:length(repositoryList) > 0}">
+                        
+                        <div class="repo-grid">
+                            <c:forEach items="${repositoryList}" var="repo">
+                                <a href="${pageContext.request.contextPath}/repository?id=${repo.idRepository}" class="repo-card">
+                                    <h3>${repo.name}</h3>
+                                    <p>${repo.description}</p>
+                                </a>
+                            </c:forEach>
+                        </div>
 
-                    <a href="${pageContext.request.contextPath}/repository" class="repo-card">
-                        <h3>Neuron.c</h3>
-                        <p>Neural network developed from scratch in C with step by step MLP training.</p>
-                    </a>
+                        <h2 class="section-title">All Repositories</h2>
+                        <div class="list-view">
+                            <div class="list-row header">
+                                <div>Name</div>
+                                <div>Owner</div>
+                                <div>Created Date</div>
+                                <div>Action</div>
+                            </div>
 
-                    <a href="${pageContext.request.contextPath}/repository" class="repo-card">
-                        <h3>Git_Cat_JDGA</h3>
-                        <p>HTML and web design base structures.</p>
-                    </a>
-                </div>
+                            <c:forEach items="${repositoryList}" var="repo">
+                                <a href="${pageContext.request.contextPath}/repository?id=${repo.idRepository}" class="list-row">
+                                    <div style="font-weight: 600; color: var(--accent);">${repo.name}</div>
+                                    <div>Me</div>
+                                    <div>${repo.creationDate.toLocalDate()}</div>
+                                    <div style="color: var(--text-secondary);">Open &rarr;</div>
+                                </a>
+                            </c:forEach>
+                        </div>
 
-                <h2 class="section-title">All Repositories</h2>
-                <div class="list-view">
-                    <div class="list-row header">
-                        <div>Name</div>
-                        <div>Owner</div>
-                        <div>Last Modified</div>
-                        <div>Size</div>
-                    </div>
+                    </c:when>
+                    <c:otherwise>
+                        <div style="text-align: center; padding: 50px; background-color: var(--surface); border-radius: var(--radius-card); border: 2px dashed #E1E4E8;">
+                            <h3 style="color: var(--text-secondary); margin-bottom: 10px;">Your vault is empty</h3>
+                            <p style="color: #9CA3AF; font-size: 14px;">Click the "+ New Repository" button on the sidebar to start tracking your projects.</p>
+                        </div>
+                    </c:otherwise>
+                </c:choose>
 
-                    <a href="${pageContext.request.contextPath}/repository" class="list-row">
-                        <div style="font-weight: 600; color: var(--accent);">Project_Sésamo</div>
-                        <div>Me</div>
-                        <div>Jun 5, 2026</div>
-                        <div>14.2 MB</div>
-                    </a>
-
-                    <a href="${pageContext.request.contextPath}/repository" class="list-row">
-                        <div style="font-weight: 600; color: var(--accent);">Neuron.c</div>
-                        <div>Me</div>
-                        <div>May 28, 2026</div>
-                        <div>2.1 MB</div>
-                    </a>
-                    
-                    <a href="${pageContext.request.contextPath}/repository" class="list-row">
-                        <div style="font-weight: 600; color: var(--accent);">ChiloDOGS_Finance</div>
-                        <div>darkiman18</div>
-                        <div>May 18, 2026</div>
-                        <div>1.5 MB</div>
-                    </a>
-                </div>
-
-            </div> </main>
+            </div>
+        </main>
     </div>
 
 </body>
