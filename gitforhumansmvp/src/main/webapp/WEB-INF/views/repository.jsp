@@ -70,7 +70,7 @@
                                             <div class="asset-icon" style="background-color: #E0F2FE; color: #0284C7;">FILE</div>
                                             <div class="asset-meta">
                                                 <h4>${file.fileName}</h4>
-                                                <p>${file.fileSize} Bytes • ${file.uploadDate}</p>
+                                                <p>${file.byteSize} Bytes • ${file.uploadDate}</p>
                                                 <span class="version-badge">v1.0</span>
                                             </div>
                                             <div class="action-menu">⋮</div>
@@ -100,6 +100,25 @@
                             </div>
                         </div>
 
+                        <div class="sidebar-section-title" style="margin-top: 30px;">Git History</div>
+                        <div class="activity-feed">
+                            <c:choose>
+                                <c:when test="${fn:length(commitHistory) > 0}">
+                                    <c:forEach items="${commitHistory}" var="commit">
+                                        <div class="activity-item">
+                                            <strong>[${commit.hash}]</strong> ${commit.message}
+                                            <span>${commit.author} • ${commit.date}</span>
+                                        </div>
+                                    </c:forEach>
+                                </c:when>
+                                <c:otherwise>
+                                    <div class="activity-item">
+                                        <span style="font-style: italic;">No commits yet.</span>
+                                    </div>
+                                </c:otherwise>
+                            </c:choose>
+                        </div>
+
                         <div class="sidebar-section-title" style="margin-top: 30px;">Collaborators</div>
                         <div class="collab-list">
                             <div class="collab-user">
@@ -113,6 +132,43 @@
             </div>
         </main>
     </div>
+
+    <div id="modalUploadAsset" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Upload to Vault</h3>
+                <button type="button" class="close-btn" onclick="closeUploadModal()">&times;</button>
+            </div>
+            
+            <form action="${pageContext.request.contextPath}/UploadAsset" method="POST" enctype="multipart/form-data">
+                
+                <input type="hidden" name="repositoryId" value="${repository.idRepository}">
+                
+                <div class="form-group">
+                    <label for="fileUpload">Select File</label>
+                    <input type="file" id="fileUpload" name="fileUpload" required style="padding: 8px;">
+                </div>
+                
+                <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 15px;">
+                    * Source code (.c, .h) will be tracked by Git. Binaries (.stl, .pdf) go to the LFS Vault.
+                </p>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeUploadModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Upload File</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openUploadModal() {
+            document.getElementById('modalUploadAsset').style.display = 'flex';
+        }
+        function closeUploadModal() {
+            document.getElementById('modalUploadAsset').style.display = 'none';
+        }
+    </script>
 
 </body>
 </html>

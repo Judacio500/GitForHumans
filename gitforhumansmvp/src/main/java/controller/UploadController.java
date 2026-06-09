@@ -7,7 +7,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.UUID;
+import java.util.Arrays;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
@@ -18,12 +20,15 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.Part;
 
+import auxiliars.utils.PropertyReader;
+import auxiliars.utils.Git.GitService;
 import db.MetadataDAO;
 import db.RepositoryDAO;
 import db.DAOInterface.IMetadataDAO;
 import db.DAOInterface.IRepositoryDAO;
 import model.MetadataBean;
 import model.RepositoryBean;
+import model.UserBean;
 
 @WebServlet("/UploadAsset")
 @MultipartConfig(
@@ -45,7 +50,7 @@ public class UploadController extends HttpServlet
         metadataDAO = new MetadataDAO();
     }
 
-    @Override
+@Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException 
     {
         HttpSession session = request.getSession(false);
@@ -56,18 +61,33 @@ public class UploadController extends HttpServlet
             return;
         }
 
+        UserBean loggedUser = (UserBean) session.getAttribute("loggedUser");
         String repoIdStr = request.getParameter("repositoryId");
         Part filePart = request.getPart("fileUpload");
 
-        if (repoIdStr == null || filePart == null || filePart.getSubmittedFileName().isEmpty()) 
+        String fileName = (filePart != null) ? extractFileName(filePart) : "";
+
+        if (repoIdStr == null || filePart == null || fileName.isEmpty()) 
         {
             response.sendRedirect(request.getContextPath() + "/dashboard");
             return;
         }
 
         UUID repoId = UUID.fromString(repoIdStr);
-        String fileName = filePart.getSubmittedFileName();
         long fileSize = filePart.getSize();
+        
+        // (De aquí en adelante sigue igual: sacar la extensión, leer properties, etc.)
+
+        String extension = "";
+        int i = fileName.lastIndexOf('.');
+        if (i > 0) 
+        {
+            extension = fileName.substring(i + 1).toLowerCase();
+        }
+
+        String allowedExts = PropertyReader.getProperty("source.properties", "source.extensions");
+        List<String> codeExtensions = Arrays.asList(allowedExts.split(","));
+        boolean isSourceCode = codeExtensions.contains(extension);
 
         try 
         {
@@ -80,8 +100,16 @@ public class UploadController extends HttpServlet
             }
 
             Path rootPath = Paths.get(repo.getGit_path());
-            Path lfsPath = rootPath.resolve("lfs_vault");
-            Path targetFilePath = lfsPath.resolve(fileName);
+            Path targetFilePath;
+
+            if (isSourceCode)
+            {
+                targetFilePath = rootPath.resolve("source_code").resolve(fileName);
+            }
+            else
+            {
+                targetFilePath = rootPath.resolve("lfs_vault").resolve(fileName);
+            }
 
             try (InputStream fileContent = filePart.getInputStream()) 
             {
@@ -94,24 +122,48 @@ public class UploadController extends HttpServlet
                 return;
             }
 
-            MetadataBean metadata = new MetadataBean();
-            metadata.setIdRepository(repoId);
-            metadata.setFileName(fileName);
-            metadata.setByteSize(fileSize);
-            metadata.setFilePath(targetFilePath.toString());
+            if (isSourceCode)
+            {
+                try
+                {
+                    String gitFolderPath = rootPath.resolve("source_code").toString();
+                    String commitMsg = "Auto-commit: Added/Updated " + fileName;
+                    String dummyEmail = loggedUser.getName().replaceAll("\\s+", "").toLowerCase() + "@codevault.local";
+                    
+                    GitService.autoCommit(gitFolderPath, commitMsg, loggedUser.getName(), dummyEmail);
+                }
+                catch(Exception e)
+                {
+                    e.printStackTrace();
+                    Files.deleteIfExists(targetFilePath);
+                    response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error: Git tracking failed");
+                    return;
+                }
+            }
+            else
+            {
+                MetadataBean metadata = new MetadataBean();
+                metadata.setIdRepository(repoId);
+                metadata.setFileName(fileName);
+                metadata.setByteSize(fileSize);
+                metadata.setFilePath(targetFilePath.toString());
+                metadata.setIdUserUpload(loggedUser.getIdUser());
+                metadata.setChangeType("Upload");
 
-            try 
-            {
-                metadataDAO.insert(metadata);
-            
-                response.sendRedirect(request.getContextPath() + "/repository?id=" + repoId.toString());
+                try 
+                {
+                    metadataDAO.insert(metadata);
+                }
+                catch (SQLException e) 
+                {
+                    e.printStackTrace();
+                    Files.deleteIfExists(targetFilePath);
+                    response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error: registering metadata in the DB");
+                    return;
+                }
             }
-            catch (SQLException e) 
-            {
-                e.printStackTrace();
-                Files.deleteIfExists(targetFilePath);
-                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error: registering metadata in the DB");
-            }
+
+            response.sendRedirect(request.getContextPath() + "/repository?id=" + repoId.toString());
 
         } 
         catch (SQLException e) 
@@ -119,5 +171,19 @@ public class UploadController extends HttpServlet
             e.printStackTrace();
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error: With the infrastructure query");
         }
+    }
+
+    private String extractFileName(Part part) 
+    {
+        String contentDisp = part.getHeader("content-disposition");
+        String[] items = contentDisp.split(";");
+        for (String s : items) 
+        {
+            if (s.trim().startsWith("filename")) 
+            {
+                return s.substring(s.indexOf("=") + 2, s.length() - 1);
+            }
+        }
+        return "";
     }
 }
