@@ -55,7 +55,7 @@ public class UserDAO implements IUserDAO
                     String name = rs.getString("nombre");
                     String email = rs.getString("email");
                     String password = rs.getString("password_hash");
-                    String avatarUrl = rs.getNString("avatar_url");
+                    String avatarUrl = rs.getString("avatar_url");
                     Boolean is_active = rs.getBoolean("is_active");
                     OffsetDateTime registerDate = rs.getObject("fecha_registro", OffsetDateTime.class);
 
