@@ -14,10 +14,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.eclipse.jgit.api.errors.GitAPIException;
+
 import db.RepositoryDAO;
 import db.DAOInterface.IRepositoryDAO;
 import model.RepositoryBean;
 import model.UserBean;
+import auxiliars.utils.Git.GitService;
 
 @WebServlet("/NewRepository")
 public class NewRepositoryController extends HttpServlet
@@ -65,6 +68,17 @@ public class NewRepositoryController extends HttpServlet
             Files.createDirectories(gitPath);
             Files.createDirectories(lfsPath);
 
+            try
+            {
+                GitService.initRepository(gitPath.toString());
+            }
+            catch(GitAPIException e)
+            {
+                e.printStackTrace();
+                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error: Could not initialize git repository");
+                return;
+            }
+
             RepositoryBean newRepo = new RepositoryBean();
             newRepo.setName(repoName);
             newRepo.setDescription(description);
@@ -87,7 +101,7 @@ public class NewRepositoryController extends HttpServlet
         catch(IOException e) 
         {
             e.printStackTrace();
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error en el sistema de archivos");
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error: File System Error");
             return;
         }
     }
